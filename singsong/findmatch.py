@@ -1,11 +1,13 @@
 import json
 from time import sleep
-
+from datetime import datetime
 import tweepy
+from nltk.tokenize import word_tokenize
 
 SECRETS_FILE = "/home/brandon/other_projects/singsong/credentials.json"
 LOCAL_ONLY = False
 MAX_TWEETS_PER_DAY_PER_PERSON = 5
+OUR_BOT_NAME = 'botpavel26'
 
 class Song(object):
     def __init__(self, title, lyrics, url=None ):
@@ -47,7 +49,10 @@ class Songs(object):
                     if not line:
                         break
                     title, lyrics = self.split(line)
-                    self.songs.append(Song(title, lyrics.lower(), urls.get(title)))
+                    try:
+                        self.songs.append(Song(title, lyrics.lower().encode('ascii', 'replace'), urls.get(title)))
+                    except Exception as exp:
+                        print exp
 
     def split(self, line):
 #        closing_quote_indx = line.rfind('"')
@@ -97,8 +102,22 @@ def main():
         auth = tweepy.OAuthHandler(secrets['consumer_key'], secrets['consumer_secret'])
         auth.set_access_token(secrets['access_token'], secrets['access_secret'])
         api = tweepy.API(auth)
-        msg = 'Hello from your bot 2!'
-        send_msg(api, msg, 'pavelmagic') #"botpavel26"
+
+        now = datetime.utcnow()
+
+        since_id=None
+        our_bot_name_len = len(OUR_BOT_NAME)
+
+        while True:
+            mentions = api.mentions_timeline()
+            for mention in mentions:
+                tweet_author = mention.author.screen_name
+                since_id = mention.id # for next time
+                tweet_text = mention.text[our_bot_name_len+1:]
+                song,score = songs.find_best_match(word_tokenize(tweet_text.encode('ascii', 'replace')))
+                msg = '{} {}'.format(song.title, song.url)
+                # msg = 'Hello from your bot 2!'
+                send_msg(api, msg, tweet_author)
 
     if LOCAL_ONLY:
         if not song_path:
@@ -120,4 +139,7 @@ def main():
             print 'best match (score={}) for {} is "{} {}"'.format(score, in_text, song.title, song.url)
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as exp:
+        print exp
