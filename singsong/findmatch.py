@@ -6,7 +6,7 @@ from nltk.tokenize import word_tokenize
 
 SECRETS_FILE = "/home/brandon/other_projects/singsong/credentials.json"
 LOCAL_ONLY = False
-MAX_TWEETS_PER_DAY_PER_PERSON = 5
+#MAX_TWEETS_PER_DAY_PER_PERSON = 5
 OUR_BOT_NAME = 'botpavel26'
 
 class Song(object):
@@ -37,7 +37,7 @@ class Songs(object):
             if url_path:
                 with open(url_path) as f:
                     while 1:
-                        line = f.readline()
+                        line = f.readline().decode('utf-8')
                         if not line:
                             break
                         title, url = line.split(',')
@@ -45,12 +45,12 @@ class Songs(object):
 
             with open(song_path) as f:
                 while 1:
-                    line = f.readline()
+                    line = f.readline().decode('utf-8')
                     if not line:
                         break
                     title, lyrics = self.split(line)
                     try:
-                        self.songs.append(Song(title, lyrics.lower().encode('ascii', 'replace'), urls.get(title)))
+                        self.songs.append(Song(title, lyrics.lower(), urls.get(title)))
                     except Exception as exp:
                         print exp
 
@@ -109,12 +109,18 @@ def main():
         our_bot_name_len = len(OUR_BOT_NAME)
 
         while True:
-            mentions = api.mentions_timeline()
+            mentions = api.mentions_timeline(since_id=since_id)
+            if since_id is None:
+                since_id = 0
             for mention in mentions:
                 tweet_author = mention.author.screen_name
-                since_id = mention.id # for next time
                 tweet_text = mention.text[our_bot_name_len+1:]
-                song,score = songs.find_best_match(word_tokenize(tweet_text.encode('ascii', 'replace')))
+                if mention.id <= since_id:
+                    print 'since_id filter not working'
+                    since_id = mention.id# for next time
+                    continue
+                since_id = mention.id # for next time
+                song,score = songs.find_best_match(word_tokenize(tweet_text))
                 msg = '{} {}'.format(song.title, song.url)
                 # msg = 'Hello from your bot 2!'
                 send_msg(api, msg, tweet_author)
