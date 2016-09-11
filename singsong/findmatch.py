@@ -1,4 +1,11 @@
-from glob import iglob
+import json
+from time import sleep
+
+import tweepy
+
+SECRETS_FILE = "/home/brandon/other_projects/singsong/credentials.json"
+LOCAL_ONLY = False
+MAX_TWEETS_PER_DAY_PER_PERSON = 5
 
 class Song(object):
     def __init__(self, title, lyrics, url=None ):
@@ -6,6 +13,7 @@ class Song(object):
         self.lyrics = lyrics
         self.url = url
         self.num_used = 0
+
 
 class Songs(object):
     def __init__(self, song_path=None, url_path=None):
@@ -64,7 +72,17 @@ class Songs(object):
         best_match.num_used += 1
         return best_match, best_score
 
-if __name__ == '__main__':
+
+def send_msg(api, msg, destination):
+    try:
+        # status = api.send_direct_message(screen_name="botpavel26", text=msg)
+        status = api.send_direct_message(screen_name=destination, text=msg)
+    except tweepy.error.TweepError as e:
+        print(repr(e))
+
+
+def main():
+
     song_path = '/home/brandon/other_projects/singsong/all_songs.txt'
     url_path = '/home/brandon/other_projects/singsong/songs_url.csv'
     try:
@@ -72,20 +90,34 @@ if __name__ == '__main__':
     except Exception as exp:
         print exp
 
-    if not song_path:
-        in_texts = [['this', 'never', 'happened', 'to', 'me'],
-                    ['hold', 'hand'],
-                    ['it', 'feels', 'like', 'the', 'first', 'time'],
-                    ['hold', 'hand'],
-                    ]
-    else:
-        in_texts = [['heaven', 'thunder'], # ch24
-                    ['hold', 'hand'],
-                    ['psychic', 'emanations'],
-                    ['it', 'feels', 'like', 'the', 'first', 'time'],
-                    ['romeo', 'juliet'],
-                    ]
+    if not LOCAL_ONLY:
+        # Twitter API setup
+        with open(SECRETS_FILE) as f:
+            secrets = json.load(f)
+        auth = tweepy.OAuthHandler(secrets['consumer_key'], secrets['consumer_secret'])
+        auth.set_access_token(secrets['access_token'], secrets['access_secret'])
+        api = tweepy.API(auth)
+        msg = 'Hello from your bot 2!'
+        send_msg(api, msg, 'pavelmagic') #"botpavel26"
 
-    for in_text in in_texts:
-        song,score = songs.find_best_match(in_text)
-        print 'best match (score={}) for {} is "{} {}"'.format(score, in_text, song.title, song.url)
+    if LOCAL_ONLY:
+        if not song_path:
+            in_texts = [['this', 'never', 'happened', 'to', 'me'],
+                        ['hold', 'hand'],
+                        ['it', 'feels', 'like', 'the', 'first', 'time'],
+                        ['hold', 'hand'],
+                        ]
+        else:
+            in_texts = [['heaven', 'thunder'], # ch24
+                        ['hold', 'hand'],
+                        ['psychic', 'emanations'],
+                        ['it', 'feels', 'like', 'the', 'first', 'time'],
+                        ['romeo', 'juliet'],
+                        ]
+
+        for in_text in in_texts:
+            song,score = songs.find_best_match(in_text)
+            print 'best match (score={}) for {} is "{} {}"'.format(score, in_text, song.title, song.url)
+
+if __name__ == '__main__':
+    main()
