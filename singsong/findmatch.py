@@ -31,7 +31,7 @@ class Songs(object):
                         if not line:
                             break
                         title, url = line.split(',')
-                        urls[title] = url
+                        urls[title] = url.strip()
 
             with open(song_path) as f:
                 while 1:
@@ -65,8 +65,8 @@ class Songs(object):
         return best_match, best_score
 
 if __name__ == '__main__':
-    song_path = '/home/brandon/other_projects/singsong/singsong/all.txt'
-    url_path = '/home/brandon/other_projects/singsong/singsong/songs_url.csv'
+    song_path = '/home/brandon/other_projects/singsong/all_songs.txt'
+    url_path = '/home/brandon/other_projects/singsong/songs_url.csv'
     try:
         songs = Songs(song_path, url_path)
     except Exception as exp:
