@@ -5,8 +5,8 @@ import tweepy
 from nltk.tokenize import word_tokenize
 
 SECRETS_FILE = "/home/brandon/other_projects/singsong/credentials.json"
-LOCAL_ONLY = False
-#MAX_TWEETS_PER_DAY_PER_PERSON = 5
+LOCAL_ONLY = False # don't connect to twitter
+TIME_BETWEEN_POLL=30 # seconds to sleep before polling Twitter again
 OUR_BOT_NAME = 'botpavel26'
 
 class Song(object):
@@ -19,7 +19,6 @@ class Song(object):
 
 class Songs(object):
     def __init__(self, song_path=None, url_path=None):
-        # load from csv file - later
         self.songs = []
         if not song_path:
             self.songs.append(Song('again', 'this never happened before'))
@@ -71,7 +70,7 @@ class Songs(object):
         best_match = None
         for song in self.songs:
             score = self.compute_score(words, song.lyrics)
-            if score > best_score and song.num_used < 1:
+            if score > best_score: # and song.num_used < 1:
                 best_score = score
                 best_match = song
         best_match.num_used += 1
@@ -123,7 +122,9 @@ def main():
                 song,score = songs.find_best_match(word_tokenize(tweet_text))
                 msg = '{} {}'.format(song.title, song.url)
                 # msg = 'Hello from your bot 2!'
+                print 'in resp to {}, to tweet {}'.format(tweet_text, msg)
                 send_msg(api, msg, tweet_author)
+            sleep(TIME_BETWEEN_POLL)
 
     if LOCAL_ONLY:
         if not song_path:
