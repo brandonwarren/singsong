@@ -104,25 +104,25 @@ def main():
 
         now = datetime.utcnow()
 
-        since_id=None
+        since_id=775094836319821828 #None
         our_bot_name_len = len(OUR_BOT_NAME)
 
         while True:
             mentions = api.mentions_timeline(since_id=since_id)
-            if since_id is None:
-                since_id = 0
+            # if since_id is None:
+            #     since_id = 0
             for mention in mentions:
                 tweet_author = mention.author.screen_name
                 tweet_text = mention.text[our_bot_name_len+1:]
                 if mention.id <= since_id:
-                    print 'since_id filter not working'
+                    print 'since_id filter not working, on since_id {}'.format(since_id)
                     since_id = mention.id# for next time
                     continue
                 since_id = mention.id # for next time
                 song,score = songs.find_best_match(word_tokenize(tweet_text))
                 msg = '{} {}'.format(song.title, song.url)
                 # msg = 'Hello from your bot 2!'
-                print 'in resp to {}, to tweet {}'.format(tweet_text, msg)
+                print '{} in resp to {}, to tweet {}'.format(since_id, tweet_text, msg)
                 send_msg(api, msg, tweet_author)
             sleep(TIME_BETWEEN_POLL)
 
