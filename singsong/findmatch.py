@@ -6,7 +6,7 @@ from nltk.tokenize import word_tokenize
 
 SECRETS_FILE = "/home/brandon/other_projects/singsong/credentials.json"
 LOCAL_ONLY = False # don't connect to twitter
-TIME_BETWEEN_POLL=30 # seconds to sleep before polling Twitter again
+TIME_BETWEEN_POLL=10 # seconds to sleep before polling Twitter again
 OUR_BOT_NAME = 'botpavel26'
 
 class Song(object):
@@ -111,6 +111,7 @@ def main():
             mentions = api.mentions_timeline(since_id=since_id)
             # if since_id is None:
             #     since_id = 0
+            print 'got {} mentions'.format(len(mentions))
             for mention in mentions:
                 tweet_author = mention.author.screen_name
                 tweet_text = mention.text[our_bot_name_len+1:]
@@ -124,7 +125,9 @@ def main():
                 # msg = 'Hello from your bot 2!'
                 print '{} in resp to {}, to tweet {}'.format(since_id, tweet_text, msg)
                 send_msg(api, msg, tweet_author)
+            print 'about to sleep for {} sec'.format(TIME_BETWEEN_POLL),
             sleep(TIME_BETWEEN_POLL)
+            print 'woke up'
 
     if LOCAL_ONLY:
         if not song_path:
