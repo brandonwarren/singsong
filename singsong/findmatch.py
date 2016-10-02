@@ -5,9 +5,47 @@ import tweepy
 from nltk.tokenize import word_tokenize
 
 SECRETS_FILE = "/home/brandon/other_projects/singsong/credentials.json"
-LOCAL_ONLY = False # don't connect to twitter
+LOCAL_ONLY = True # don't connect to twitter
 TIME_BETWEEN_POLL=10 # seconds to sleep before polling Twitter again
 OUR_BOT_NAME = 'botpavel26'
+
+
+if LOCAL_ONLY:
+    sim = 'SAME_GROW' # emulate what Twitter API seems to be doing
+    mention_id = 10
+    num_mentions_to_ret = 4
+    TIME_BETWEEN_POLL=1
+    class Author(object):
+        def __init__(self):
+            self.screen_name = 'Joe'
+
+    class Mention(object):
+        def __init__(self):
+            global mention_id
+            self.id = mention_id
+            mention_id += 10
+            self.text = '{} hello there'.format(OUR_BOT_NAME)
+            self.author = Author()
+        def __str__(self):
+            return str(self.id)
+
+    def mock_mentions_timeline(since_id=None):
+        # if since_id is None:
+        #     since_id = 10
+        global mention_id, num_mentions_to_ret
+        if sim == 'PROPER':
+            mentions = []
+            for i in range(4):
+                mentions.append(Mention())
+            return mentions
+        elif sim == 'SAME_GROW':
+            mention_id = 10
+            mentions = []
+            for i in range(num_mentions_to_ret):
+                mentions.append(Mention())
+            num_mentions_to_ret += 4
+            return mentions
+
 
 class Song(object):
     def __init__(self, title, lyrics, url=None ):
@@ -104,30 +142,38 @@ def main():
 
         now = datetime.utcnow()
 
-        since_id=775094836319821828 #None
-        our_bot_name_len = len(OUR_BOT_NAME)
+    if LOCAL_ONLY:
+        since_id=10
+    else:
+        since_id=775094836319821828
 
-        while True:
+    our_bot_name_len = len(OUR_BOT_NAME)
+
+    while True:
+        if LOCAL_ONLY:
+            mentions = mock_mentions_timeline(since_id=since_id)
+        else:
             mentions = api.mentions_timeline(since_id=since_id)
-            # if since_id is None:
-            #     since_id = 0
-            print 'got {} mentions'.format(len(mentions))
-            for mention in mentions:
-                tweet_author = mention.author.screen_name
-                tweet_text = mention.text[our_bot_name_len+1:]
-                if mention.id <= since_id:
-                    print 'since_id filter not working, on since_id {}'.format(since_id)
-                    since_id = mention.id# for next time
-                    continue
-                since_id = mention.id # for next time
-                song,score = songs.find_best_match(word_tokenize(tweet_text))
-                msg = '{} {}'.format(song.title, song.url)
-                # msg = 'Hello from your bot 2!'
-                print '{} in resp to {}, to tweet {}'.format(since_id, tweet_text, msg)
+        # if since_id is None:
+        #     since_id = 0
+        print 'got {} mentions'.format(len(mentions))
+        for mention in mentions:
+            tweet_author = mention.author.screen_name
+            tweet_text = mention.text[our_bot_name_len+1:]
+            if mention.id <= since_id:
+                print 'since_id filter not working, on since_id {}'.format(since_id)
+                since_id = mention.id# for next time
+                continue
+            since_id = mention.id # for next time
+            song,score = songs.find_best_match(word_tokenize(tweet_text))
+            msg = '{} {}'.format(song.title, song.url)
+            # msg = 'Hello from your bot 2!'
+            print '{} in resp to {}, to tweet {}'.format(since_id, tweet_text, msg)
+            if not LOCAL_ONLY:
                 send_msg(api, msg, tweet_author)
-            print 'about to sleep for {} sec'.format(TIME_BETWEEN_POLL),
-            sleep(TIME_BETWEEN_POLL)
-            print 'woke up'
+        print 'about to sleep for {} sec'.format(TIME_BETWEEN_POLL),
+        sleep(TIME_BETWEEN_POLL)
+        print 'woke up'
 
     if LOCAL_ONLY:
         if not song_path:
