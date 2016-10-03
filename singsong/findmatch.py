@@ -1,11 +1,13 @@
 import json
 from time import sleep
 from datetime import datetime
+
 import tweepy
 from nltk.tokenize import word_tokenize
 
-SECRETS_FILE = "/home/brandon/other_projects/singsong/credentials.json"
 LOCAL_ONLY = True # don't connect to twitter
+
+SECRETS_FILE = "/home/brandon/other_projects/singsong/credentials.json"
 TIME_BETWEEN_POLL=10 # seconds to sleep before polling Twitter again
 OUR_BOT_NAME = 'botpavel26'
 
@@ -15,6 +17,7 @@ if LOCAL_ONLY:
     mention_id = 10
     num_mentions_to_ret = 4
     TIME_BETWEEN_POLL=1
+
     class Author(object):
         def __init__(self):
             self.screen_name = 'Joe'
@@ -154,8 +157,6 @@ def main():
             mentions = mock_mentions_timeline(since_id=since_id)
         else:
             mentions = api.mentions_timeline(since_id=since_id)
-        # if since_id is None:
-        #     since_id = 0
         print 'got {} mentions'.format(len(mentions))
         for mention in mentions:
             if mention.id <= since_id:
