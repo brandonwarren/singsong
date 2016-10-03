@@ -158,12 +158,12 @@ def main():
         #     since_id = 0
         print 'got {} mentions'.format(len(mentions))
         for mention in mentions:
+            if mention.id <= since_id:
+                print 'since_id filter not working: mention.id={} since_id={}'.format(
+                    mention.id, since_id)
+                continue
             tweet_author = mention.author.screen_name
             tweet_text = mention.text[our_bot_name_len+1:]
-            if mention.id <= since_id:
-                print 'since_id filter not working, on since_id {}'.format(since_id)
-                since_id = mention.id# for next time
-                continue
             since_id = mention.id # for next time
             song,score = songs.find_best_match(word_tokenize(tweet_text))
             msg = '{} {}'.format(song.title, song.url)
