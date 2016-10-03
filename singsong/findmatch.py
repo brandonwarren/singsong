@@ -18,6 +18,14 @@ if LOCAL_ONLY:
     num_mentions_to_ret = 4
     TIME_BETWEEN_POLL=1
 
+    tweet_texts = [
+        '{} heaven thunder'.format(OUR_BOT_NAME),  # ch24
+        '{} hold hand'.format(OUR_BOT_NAME),
+        '{} psychic emanations'.format(OUR_BOT_NAME),
+        '{} it feels like the first time'.format(OUR_BOT_NAME),
+        '{} romeo juliet'.format(OUR_BOT_NAME),
+        ]
+
     class Author(object):
         def __init__(self):
             self.screen_name = 'Joe'
@@ -27,7 +35,10 @@ if LOCAL_ONLY:
             global mention_id
             self.id = mention_id
             mention_id += 10
-            self.text = '{} hello there'.format(OUR_BOT_NAME)
+            tweet_index = self.id/10 - 2
+            if tweet_index >= len(tweet_texts):
+                tweet_index = 0
+            self.text = tweet_texts[tweet_index]
             self.author = Author()
         def __str__(self):
             return str(self.id)
@@ -61,38 +72,32 @@ class Song(object):
 class Songs(object):
     def __init__(self, song_path=None, url_path=None):
         self.songs = []
-        if not song_path:
-            self.songs.append(Song('again', 'this never happened before'))
-            self.songs.append(Song('first time', 'it feels like the first time'))
-            self.songs.append(Song('i wanna hold your hand', 'i wanna hold your hand'))
-            self.songs.append(Song('give me a hand', 'give me a hand'))
-        else:
-            # load
-            # for file in iglob(os.path.join(song_path,'*.txt')):
-            #     with open(file) as f:
-            #         line = f.read()
-            #     title, lyrics = self.split(line)
-            #     self.songs.append(title, lyrics)
-            urls={} # key is song title
-            if url_path:
-                with open(url_path) as f:
-                    while 1:
-                        line = f.readline().decode('utf-8')
-                        if not line:
-                            break
-                        title, url = line.split(',')
-                        urls[title] = url.strip()
-
-            with open(song_path) as f:
+        # load
+        # for file in iglob(os.path.join(song_path,'*.txt')):
+        #     with open(file) as f:
+        #         line = f.read()
+        #     title, lyrics = self.split(line)
+        #     self.songs.append(title, lyrics)
+        urls={} # key is song title
+        if url_path:
+            with open(url_path) as f:
                 while 1:
                     line = f.readline().decode('utf-8')
                     if not line:
                         break
-                    title, lyrics = self.split(line)
-                    try:
-                        self.songs.append(Song(title, lyrics.lower(), urls.get(title)))
-                    except Exception as exp:
-                        print exp
+                    title, url = line.split(',')
+                    urls[title] = url.strip()
+
+        with open(song_path) as f:
+            while 1:
+                line = f.readline().decode('utf-8')
+                if not line:
+                    break
+                title, lyrics = self.split(line)
+                try:
+                    self.songs.append(Song(title, lyrics.lower(), urls.get(title)))
+                except Exception as exp:
+                    print exp
 
     def split(self, line):
 #        closing_quote_indx = line.rfind('"')
@@ -169,31 +174,12 @@ def main():
             song,score = songs.find_best_match(word_tokenize(tweet_text))
             msg = '{} {}'.format(song.title, song.url)
             # msg = 'Hello from your bot 2!'
-            print '{} in resp to {}, to tweet {}'.format(since_id, tweet_text, msg)
+            print '{} in resp to {}, to tweet {} (score={})'.format(since_id, tweet_text, msg, score)
             if not LOCAL_ONLY:
                 send_msg(api, msg, tweet_author)
         print 'about to sleep for {} sec'.format(TIME_BETWEEN_POLL),
         sleep(TIME_BETWEEN_POLL)
         print 'woke up'
-
-    if LOCAL_ONLY:
-        if not song_path:
-            in_texts = [['this', 'never', 'happened', 'to', 'me'],
-                        ['hold', 'hand'],
-                        ['it', 'feels', 'like', 'the', 'first', 'time'],
-                        ['hold', 'hand'],
-                        ]
-        else:
-            in_texts = [['heaven', 'thunder'], # ch24
-                        ['hold', 'hand'],
-                        ['psychic', 'emanations'],
-                        ['it', 'feels', 'like', 'the', 'first', 'time'],
-                        ['romeo', 'juliet'],
-                        ]
-
-        for in_text in in_texts:
-            song,score = songs.find_best_match(in_text)
-            print 'best match (score={}) for {} is "{} {}"'.format(score, in_text, song.title, song.url)
 
 if __name__ == '__main__':
     try:
