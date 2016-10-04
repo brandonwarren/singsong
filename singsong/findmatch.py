@@ -1,11 +1,12 @@
+LOCAL_ONLY = True # don't connect to twitter
+
 import json
 from time import sleep
 from datetime import datetime
 
-import tweepy
+if not LOCAL_ONLY:
+    import tweepy
 from nltk.tokenize import word_tokenize
-
-LOCAL_ONLY = True # don't connect to twitter
 
 SECRETS_FILE = "/home/brandon/other_projects/singsong/credentials.json"
 TIME_BETWEEN_POLL=10 # seconds to sleep before polling Twitter again
@@ -97,7 +98,7 @@ class Songs(object):
                 try:
                     self.songs.append(Song(title, lyrics.lower(), urls.get(title)))
                 except Exception as exp:
-                    print exp
+                    print(exp)
 
     def split(self, line):
 #        closing_quote_indx = line.rfind('"')
@@ -138,7 +139,7 @@ def main():
     try:
         songs = Songs(song_path, url_path)
     except Exception as exp:
-        print exp
+        print(exp)
 
     if not LOCAL_ONLY:
         # Twitter API setup
@@ -162,11 +163,11 @@ def main():
             mentions = mock_mentions_timeline(since_id=since_id)
         else:
             mentions = api.mentions_timeline(since_id=since_id)
-        print 'got {} mentions'.format(len(mentions))
+        print('got {} mentions'.format(len(mentions)))
         for mention in mentions:
             if mention.id <= since_id:
-                print 'since_id filter not working: mention.id={} since_id={}'.format(
-                    mention.id, since_id)
+                print('since_id filter not working: mention.id={} since_id={}'.format(
+                    mention.id, since_id))
                 continue
             tweet_author = mention.author.screen_name
             tweet_text = mention.text[our_bot_name_len+1:]
@@ -174,15 +175,15 @@ def main():
             song,score = songs.find_best_match(word_tokenize(tweet_text))
             msg = '{} {}'.format(song.title, song.url)
             # msg = 'Hello from your bot 2!'
-            print '{} in resp to {}, to tweet {} (score={})'.format(since_id, tweet_text, msg, score)
+            print('{} in resp to {}, to tweet {} (score={})'.format(since_id, tweet_text, msg, score))
             if not LOCAL_ONLY:
                 send_msg(api, msg, tweet_author)
-        print 'about to sleep for {} sec'.format(TIME_BETWEEN_POLL),
+        print('about to sleep for {} sec'.format(TIME_BETWEEN_POLL),)
         sleep(TIME_BETWEEN_POLL)
-        print 'woke up'
+        print('woke up')
 
 if __name__ == '__main__':
     try:
         main()
     except Exception as exp:
-        print exp
+        print(exp)
