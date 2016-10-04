@@ -83,7 +83,7 @@ class Songs(object):
         if url_path:
             with open(url_path) as f:
                 while 1:
-                    line = f.readline().decode('utf-8')
+                    line = f.readline()
                     if not line:
                         break
                     title, url = line.split(',')
@@ -91,7 +91,7 @@ class Songs(object):
 
         with open(song_path) as f:
             while 1:
-                line = f.readline().decode('utf-8')
+                line = f.readline()
                 if not line:
                     break
                 title, lyrics = self.split(line)
