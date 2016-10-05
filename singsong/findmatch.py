@@ -96,10 +96,7 @@ class Songs(object):
                 if not line:
                     break
                 title, lyrics = self.split(line)
-                try:
-                    self.songs.append(Song(title, lyrics.lower(), urls.get(title)))
-                except Exception as exp:
-                    print(exp)
+                self.songs.append(Song(title, lyrics.lower(), urls.get(title)))
 
     def split(self, line):
 #        closing_quote_indx = line.rfind('"')
@@ -129,17 +126,14 @@ def send_msg(api, msg, destination):
     try:
         status = api.send_direct_message(screen_name=destination, text=msg)
     except tweepy.error.TweepError as e:
-        print(repr(e))
+        print('Error posting tweet: {}'.format(repr(e)))
 
 
 def main():
 
     song_path = 'all_songs.txt'
     url_path = 'songs_url.csv'
-    try:
-        songs = Songs(song_path, url_path)
-    except Exception as exp:
-        print(exp)
+    songs = Songs(song_path, url_path)
 
     if not LOCAL_ONLY:
         # Twitter API setup
@@ -183,7 +177,4 @@ def main():
         print('woke up')
 
 if __name__ == '__main__':
-    try:
-        main()
-    except Exception as exp:
-        print(exp)
+    main()
