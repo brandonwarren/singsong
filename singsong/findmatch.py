@@ -156,7 +156,7 @@ def main():
     if LOCAL_ONLY:
         since_id=10
     else:
-        since_id=775094836319821828
+        since_id=783523817687748608
 
     our_bot_name_len = len(OUR_BOT_NAME)
 
@@ -176,8 +176,8 @@ def main():
             since_id = mention.id # for next time
             song,score = songs.find_best_match(word_tokenize(tweet_text))
             msg = '{} {}'.format(song.title, song.url)
-            # msg = 'Hello from your bot 2!'
-            print('{} in resp to {}, to tweet {} (score={})'.format(since_id, tweet_text, msg, score))
+            print('To {} in resp to "{}", to tweet "{}" (score={}, id={})'.format(
+                tweet_author, tweet_text, msg, score, mention.id))
             if not LOCAL_ONLY:
                 send_msg(api, msg, tweet_author)
         print('about to sleep for {} sec'.format(TIME_BETWEEN_POLL),)
