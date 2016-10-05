@@ -36,7 +36,9 @@ if LOCAL_ONLY:
             global mention_id
             self.id = mention_id
             mention_id += 10
-            tweet_index = self.id/10 - 2
+            tweet_index = int(self.id/10) - 2
+            if tweet_index < 0:
+                tweet_index = 0
             if tweet_index >= len(tweet_texts):
                 tweet_index = 0
             self.text = tweet_texts[tweet_index]
