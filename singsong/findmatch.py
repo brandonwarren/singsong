@@ -1,4 +1,4 @@
-LOCAL_ONLY = True # don't connect to twitter
+LOCAL_ONLY = False # don't connect to twitter if True
 
 import json
 from time import sleep
@@ -9,7 +9,7 @@ if not LOCAL_ONLY:
 from nltk.tokenize import word_tokenize
 
 SECRETS_FILE = "/home/brandon/other_projects/singsong/credentials.json"
-TIME_BETWEEN_POLL=10 # seconds to sleep before polling Twitter again
+TIME_BETWEEN_POLL=60 # seconds to sleep before polling Twitter again
 OUR_BOT_NAME = 'botpavel26'
 
 
