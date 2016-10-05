@@ -1,15 +1,14 @@
-LOCAL_ONLY = False # don't connect to twitter if True
-
 import json
 from time import sleep
 from datetime import datetime
 
-if not LOCAL_ONLY:
-    import tweepy
+import tweepy
 from nltk.tokenize import word_tokenize
 
-SECRETS_FILE = "/home/brandon/other_projects/singsong/credentials.json"
-TIME_BETWEEN_POLL=60 # seconds to sleep before polling Twitter again
+
+LOCAL_ONLY = False # don't connect to twitter if True (for debug)
+SECRETS_FILE = "credentials.json"
+TIME_BETWEEN_POLL = 60 # seconds to sleep before polling Twitter again
 OUR_BOT_NAME = 'botpavel26'
 
 
@@ -128,7 +127,6 @@ class Songs(object):
 
 def send_msg(api, msg, destination):
     try:
-        # status = api.send_direct_message(screen_name="botpavel26", text=msg)
         status = api.send_direct_message(screen_name=destination, text=msg)
     except tweepy.error.TweepError as e:
         print(repr(e))
@@ -136,8 +134,8 @@ def send_msg(api, msg, destination):
 
 def main():
 
-    song_path = '/home/brandon/other_projects/singsong/all_songs.txt'
-    url_path = '/home/brandon/other_projects/singsong/songs_url.csv'
+    song_path = 'all_songs.txt'
+    url_path = 'songs_url.csv'
     try:
         songs = Songs(song_path, url_path)
     except Exception as exp:
