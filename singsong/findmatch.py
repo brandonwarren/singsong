@@ -154,7 +154,7 @@ def main():
     if LOCAL_ONLY:
         since_id=10
     else:
-        since_id=783523817687748608
+        since_id=783527489222111232
 
     our_bot_name_len = len(OUR_BOT_NAME)
 
