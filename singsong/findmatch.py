@@ -1,15 +1,17 @@
 import json
 from time import sleep
-from datetime import datetime
 
 import tweepy
 from nltk.tokenize import word_tokenize
 
 
 LOCAL_ONLY = False # don't connect to twitter if True (for debug)
-SECRETS_FILE = "credentials.json"
-TIME_BETWEEN_POLL = 60 # seconds to sleep before polling Twitter again
+SECRETS_FILE = 'credentials.json'
+SINCE_ID_FILE = 'since_id'
+SONG_PATH = 'all_songs.txt'
+URL_PATH = 'songs_url.csv'
 OUR_BOT_NAME = 'botpavel26'
+TIME_BETWEEN_POLL = 60 # seconds to sleep before polling Twitter again
 
 
 if LOCAL_ONLY:
@@ -131,9 +133,7 @@ def send_msg(api, msg, destination):
 
 def main():
 
-    song_path = 'all_songs.txt'
-    url_path = 'songs_url.csv'
-    songs = Songs(song_path, url_path)
+    songs = Songs(SONG_PATH, URL_PATH)
 
     if not LOCAL_ONLY:
         # Twitter API setup
@@ -143,38 +143,50 @@ def main():
         auth.set_access_token(secrets['access_token'], secrets['access_secret'])
         api = tweepy.API(auth)
 
-        now = datetime.utcnow()
-
+    # since_id is earliest tweet (mention) we are interested in
     if LOCAL_ONLY:
         since_id=10
     else:
-        since_id=783527489222111232
+        since_id=783816354184900608
+        try:
+            with open(SINCE_ID_FILE) as f:
+                line = f.readline()
+                since_id = int(line)
+        except:
+            print('Unable to read {}. (ok if first time this has been run.)'.format(SINCE_ID_FILE))
 
     our_bot_name_len = len(OUR_BOT_NAME)
 
-    while True:
-        if LOCAL_ONLY:
-            mentions = mock_mentions_timeline(since_id=since_id)
-        else:
-            mentions = api.mentions_timeline(since_id=since_id)
-        print('got {} mentions'.format(len(mentions)))
-        for mention in mentions:
-            if mention.id <= since_id:
-                print('since_id filter not working: mention.id={} since_id={}'.format(
-                    mention.id, since_id))
-                continue
-            tweet_author = mention.author.screen_name
-            tweet_text = mention.text[our_bot_name_len+1:]
-            since_id = mention.id # for next time
-            song,score = songs.find_best_match(word_tokenize(tweet_text))
-            msg = '{} {}'.format(song.title, song.url)
-            print('To {} in resp to "{}", to tweet "{}" (score={}, id={})'.format(
-                tweet_author, tweet_text, msg, score, mention.id))
-            if not LOCAL_ONLY:
-                send_msg(api, msg, tweet_author)
-        print('about to sleep for {} sec'.format(TIME_BETWEEN_POLL),)
-        sleep(TIME_BETWEEN_POLL)
-        print('woke up')
+    try:
+        while True:
+            if LOCAL_ONLY:
+                mentions = mock_mentions_timeline(since_id=since_id)
+            else:
+                mentions = api.mentions_timeline(since_id=since_id)
+            print('got {} mentions'.format(len(mentions)))
+            for mention in mentions:
+                if mention.id <= since_id:
+                    print('since_id filter not working: mention.id={} since_id={}'.format(
+                        mention.id, since_id))
+                    continue
+                tweet_author = mention.author.screen_name
+                tweet_text = mention.text[our_bot_name_len+1:]
+                song,score = songs.find_best_match(word_tokenize(tweet_text))
+                msg = '{} {}'.format(song.title, song.url)
+                print('To {} in resp to "{}", to tweet "{}" (score={}, id={})'.format(
+                    tweet_author, tweet_text, msg, score, mention.id))
+                if not LOCAL_ONLY:
+                    send_msg(api, msg, tweet_author)
+                since_id = mention.id
+            print('about to sleep for {} sec'.format(TIME_BETWEEN_POLL),)
+            sleep(TIME_BETWEEN_POLL)
+            print('woke up')
+    except KeyboardInterrupt:
+        print('keyboard interrupt')
+    finally:
+        with open(SINCE_ID_FILE, 'w') as f:
+            f.write('{}\n'.format(since_id))
+        print('{} updated'.format(SINCE_ID_FILE))
 
 if __name__ == '__main__':
     main()
